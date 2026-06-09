@@ -84,7 +84,6 @@ void tutorial(){
     cout<< "Go ahead and enter a coordinate, like this: A3\nColumn: " ;
     cin >> temp_char_input;
     temp_char = coordinateColumn(temp_char_input);
-    cout<< "position: " << temp_char;
     cout<< "row: ";
     cin >> temp_int;;
     coordinateRow(temp_int);
@@ -175,8 +174,10 @@ void updateUI(MapVisual &mapa, int susLevel, int userKarma){
 
 void updateFlags(int rw, int clm, EntityPool &entities, MapVisual &mapa, bool executionFlag, int pFlag){
     if (executionFlag == false){mapa.chatFalseExecution(rw, clm, entities.getEntity(rw, clm)->getRole());}
-    if (pFlag >= 0){mapa.chatPresence(pFlag); cout << " YES" << endl;}
+    if (pFlag >= 0){mapa.chatPresence(pFlag);}
 }
+
+
 
 // Funciones de gameplay
 bool endConditions1(EntityPool &entities, int storage[][3], int index){
@@ -235,7 +236,7 @@ void karmaPenalty(int rw, int clm, int dmg, EntityPool &entities, int &sus, int 
     
     if (state0 != 3){
         if (role == 1){
-            sus = sus+(dmg/10);
+            sus = sus+(dmg/50);
             karma = karma-(dmg/5);
         }
         else if (role == 2){

@@ -139,7 +139,6 @@ void MapVisual::chatRole(string name, int role){
 }
 
 void MapVisual::chatPresence(int presence){
-    cout << "this shit work or nah" << endl;
     for (int i = 0; i <= 5; i++){
         chat[i] = chat[i+1];
     }
@@ -155,8 +154,8 @@ void MapVisual::chatFalseExecution(int rw, int clm, int role){
     }
 
     chat[6] ="This ";
-    chat[6] = chat[6] + spriteStates[role - 1];
-    chat[6] = chat[6] + "is dead already";
+    chat[6] = chat[6] + spriteRoles[role - 1];
+    chat[6] = chat[6] + " is dead already";
 }
 
 
