@@ -23,7 +23,7 @@ class MapVisual{
         void updateState(int row, int clm, int state);
         void updateRole(int row, int clm, int role);
 
-        void chatState(string name, int state);
+        void chatState(string name, int state, int role);
         void chatRole(string name, int role);
         void chatPresence(int presence);
         void chatFalseExecution(int rw, int clm, int role);
@@ -87,7 +87,6 @@ MapVisual::MapVisual(string username)
 
 // Definicion de updaters
 void MapVisual::updateState(int row, int clm, int state){
-    cout << " UPDATING STATE" << endl;
     int internalCoordinate =  ((row + 1) * 10) + (clm + 3);
     if (unfoldedVisual[internalCoordinate] != '\n'){
         unfoldedVisual[internalCoordinate] = spriteStates[state - 1];
@@ -95,7 +94,6 @@ void MapVisual::updateState(int row, int clm, int state){
 }
 
 void MapVisual::updateRole(int row, int clm, int role){
-    cout << " UPDATING ROLE" << endl;
     int internalCoordinate =  ((row + 1) * 10) + (clm + 3);
     if (unfoldedVisual[internalCoordinate] != '\n'){
         unfoldedVisual[internalCoordinate] = spriteRoles[role - 1];
@@ -118,12 +116,17 @@ void MapVisual::victory(){
 
 
 // Text
-void MapVisual::chatState(string name, int state){
+void MapVisual::chatState(string name, int state, int role){
     for (int i = 0; i <= 5; i++){
         chat[i] = chat[i+1];
     }
     chat[6] = name + " is ";
-    chat[6] = chat[6] + spriteStates[state - 1];
+    if (state == 1){chat[6] = chat[6] + "alive.";}
+    else if (state == 2){chat[6] = chat[6] + "going to fucking kill me help!!";}
+    else if (state == 3){
+        chat[6] = chat[6] + " dead, they were a ";
+        chat[6] = chat[6] + spriteRoles[role - 1];
+    }
 }
 
 void MapVisual::chatRole(string name, int role){
@@ -136,6 +139,7 @@ void MapVisual::chatRole(string name, int role){
 }
 
 void MapVisual::chatPresence(int presence){
+    cout << "this shit work or nah" << endl;
     for (int i = 0; i <= 5; i++){
         chat[i] = chat[i+1];
     }

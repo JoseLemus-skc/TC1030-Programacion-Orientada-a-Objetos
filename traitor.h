@@ -61,7 +61,6 @@ void Traitor::damage(int dg){
 void Traitor::unhide(){
     visibility = true;
     increaseAggro();
-    cout << "AGRO INCREASED BY: " << aggroLevel << " / " << aggroTolerance << endl;
 }
 
 #endif

@@ -25,7 +25,6 @@ void pause(){
 int coordinateColumn(char clm){
     char letters[6] = {'A','B','C','D','E','F'};
     for (int i = 0; i < 6; i++){
-        cout << i;
         if (clm == letters[i]){
             return i;
         }
@@ -152,15 +151,20 @@ void updateChanges(MapVisual &mapa, EntityPool &entities, int storage[][3], int 
     for (int i = 0; i < index; i++){
         int tempRow = storage[i][0];
         int tempClm = storage[i][1];
+        int tempRole;
+        int tempState;
 
         Entity* tempPtr = entities.getEntity(tempRow, tempClm);
+        tempRole = tempPtr->getRole();
+        tempState = tempPtr->getState();
+
         if (storage[i][2] == 0){
-            mapa.updateRole(tempRow, tempClm, tempPtr->getRole());
-            mapa.chatRole(tempPtr->getName(),tempPtr->getRole());
+            mapa.updateRole(tempRow, tempClm, tempRole);
+            mapa.chatRole(tempPtr->getName(),tempRole);
         }
         else if(storage[i][2] == 1){
-            mapa.updateState(tempRow, tempClm, tempPtr->getState());
-            mapa.chatState(tempPtr->getName(),tempPtr->getState());
+            mapa.updateState(tempRow, tempClm, tempState);
+            mapa.chatState(tempPtr->getName(),tempState, tempRole);
         }
     }
 }
@@ -169,15 +173,13 @@ void updateUI(MapVisual &mapa, int susLevel, int userKarma){
     mapa.updateUser(userKarma, susLevel);
 }
 
-void updateFlags(int rw, int clm, EntityPool &entities, MapVisual &mapa, bool executionFlag, int presenceFlag){
+void updateFlags(int rw, int clm, EntityPool &entities, MapVisual &mapa, bool executionFlag, int pFlag){
     if (executionFlag == false){mapa.chatFalseExecution(rw, clm, entities.getEntity(rw, clm)->getRole());}
-    if (presenceFlag >= 0){mapa.chatPresence(presenceFlag);}
+    if (pFlag >= 0){mapa.chatPresence(pFlag); cout << " YES" << endl;}
 }
 
-
-
 // Funciones de gameplay
-bool endVerifier(EntityPool &entities, int storage[][3], int index){
+bool endConditions1(EntityPool &entities, int storage[][3], int index){
     for (int i = 0; i < index; i++){
         int tempRow = storage[i][0];
         int tempClm = storage[i][1];
@@ -187,6 +189,11 @@ bool endVerifier(EntityPool &entities, int storage[][3], int index){
 
         if (tempState == 2){return true;}
     }
+    return false;
+}
+
+bool endConditions2(int karma, int sus){
+    if (karma < 700 && sus > 7){return true;}
     return false;
 }
 
@@ -236,9 +243,10 @@ void karmaPenalty(int rw, int clm, int dmg, EntityPool &entities, int &sus, int 
             karma = karma+(dmg/2);
         }
         else if (role == 3){
-            sus = sus+(dmg/2);
+            sus = sus+(dmg/5);
             karma = karma-(dmg/2);
         }
+        if (sus < 0){sus = 0;}
     }
 }
 
@@ -325,9 +333,9 @@ void damageSpread(int rw, int clm, int sprd, int dmg, const int &limits, EntityP
 }
 
 // Ronda
-bool round(int susLevel, int userKarma, MapVisual &mapa,EntityPool &entities){
+bool round(int &susLevel, int &userKarma, MapVisual &mapa,EntityPool &entities){    
     mapa.printMap();
-    
+
     bool isGameOver = false;
     char input_column = 'A';
     int column = 0;
@@ -351,16 +359,12 @@ bool round(int susLevel, int userKarma, MapVisual &mapa,EntityPool &entities){
     cin >> option;
 
     if (option == 1){
-        attackEntity(row, column, 100, entities, stChangesStorage, stChanges, successFlag);
         karmaPenalty(row, column, 100, entities, susLevel, userKarma);
+        attackEntity(row, column, 100, entities, stChangesStorage, stChanges, successFlag);
     }
     else if (option == 2){
         unhideEntity(row, column, entities, stChangesStorage, stChanges, successFlag);
-        int tees = observeSpread(row, column, 1, DIMENSION, entities,stChangesStorage, stChanges);
-
-        if (tees == 0){cout << "There are no Ts"<< endl;}
-        else if (tees == 1){cout << "There is a T around"<< endl;}
-        else if (tees > 1){cout << "There are Ts around"<< endl;}
+        presenceFlag = observeSpread(row, column, 1, DIMENSION, entities, stChangesStorage, stChanges);
     }
     else{
         cout << "Invalid option.";
@@ -371,7 +375,8 @@ bool round(int susLevel, int userKarma, MapVisual &mapa,EntityPool &entities){
     updateChanges(mapa, entities, stChangesStorage, stChanges);
     updateFlags(row, column, entities, mapa, successFlag, presenceFlag);
     updateUI(mapa, susLevel, userKarma);
-    return endVerifier(entities, stChangesStorage, stChanges);
+
+    return (endConditions1(entities, stChangesStorage, stChanges) || endConditions2(userKarma, susLevel) );
 }
 
 
@@ -412,12 +417,16 @@ int main(){
     // Inicializacion del juego
     EntityPool game;
     game.loadMap(map1,namePool);
-    MapVisual gameMap;
+    MapVisual gameMap(playerName);
     
     // Loop de turnos
+
     while(gameOver == false){
+        cleanScreen();
         gameOver = round(sus, karma, gameMap, game);
     }
+    gameMap.printMap();
+    pause();
 
     gameMap.death();
 }
