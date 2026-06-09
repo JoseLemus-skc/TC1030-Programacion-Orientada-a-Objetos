@@ -193,7 +193,7 @@ bool endConditions1(EntityPool &entities, int storage[][3], int index){
 }
 
 bool endConditions2(int karma, int sus){
-    if (karma < 700 && sus > 7){return true;}
+    if (karma < 60 && sus > 7){return true;}
     return false;
 }
 
