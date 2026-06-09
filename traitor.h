@@ -18,6 +18,8 @@ class Traitor: public Entity{
 
     void damage(int dg) override;
     void unhide() override;
+
+    void notice();
 };
 
 
@@ -39,6 +41,10 @@ void Traitor::increaseAggro(){
     } 
 }
 
+void Traitor::notice(){
+    increaseAggro();
+}
+
 
 
 // Definicion de metodos sobreescritos
@@ -54,8 +60,8 @@ void Traitor::damage(int dg){
 
 void Traitor::unhide(){
     visibility = true;
-
     increaseAggro();
+    cout << "AGRO INCREASED BY: " << aggroLevel << " / " << aggroTolerance << endl;
 }
 
 #endif
