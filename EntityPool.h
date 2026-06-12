@@ -103,7 +103,7 @@ void EntityPool::loadMap(char distributionMap[6][6], string namePool[36]){
 /**
  * Regresa el apuntador a la entidad almacenada
  * en la coordenada especificada.
- * param: int fila, int columna
+ * param: int (fila), int (columna)
  * return: Entity*
  */
 Entity* EntityPool::getEntity(int row, int clm){
