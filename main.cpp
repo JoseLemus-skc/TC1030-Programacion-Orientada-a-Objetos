@@ -11,12 +11,12 @@
  * 
  */
 
-#include "entity.h"
-#include "inno.h"
-#include "traitor.h"
-#include "detective.h"
-#include "entityPool.h"
-#include "mapVisual.h"
+#include "Entity.h"
+#include "Inno.h"
+#include "Traitor.h"
+#include "Detective.h"
+#include "EntityPool.h"
+#include "MapVisual.h"
 
 #include <iostream>
 #include <string>
