@@ -68,7 +68,7 @@ void Detective::increaseAggro(){
  * Reduce la vida de la entidad según el daño recibido.
  * Si la vida llega a cero o menos, el estado cambia a muerto.
  * aparte incrementa su nivel aggro.
- * param: int daño
+ * param: int (daño)
  * return
  */
 void Detective::damage(int dg){
