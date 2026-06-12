@@ -40,7 +40,7 @@ Inno::Inno(string nm)
 /**
  * Reduce la vida de la entidad según el daño recibido.
  * Si la vida llega a cero o menos, el estado cambia a muerto.
- * param: int daño
+ * param: int (damage)
  * return
  */
 void Inno::damage(int dg){
