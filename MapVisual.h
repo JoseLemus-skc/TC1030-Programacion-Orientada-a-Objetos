@@ -88,7 +88,7 @@ MapVisual::MapVisual()
 /**
  * Constructor con parametro.
  * Inicializa el mapa visual utilizando un nombre del usuario.
- * param: string nombre de usuario
+ * param: string (username)
  * return
  */
 MapVisual::MapVisual(string username)
@@ -119,7 +119,7 @@ MapVisual::MapVisual(string username)
 
 /**
  * Actualiza el simbolo del estado de una entidad.
- * param: int fila, int columna, int estado
+ * param: int (row), int (column), int (estado)
  * return
  */
 void MapVisual::updateState(int row, int clm, int state){
@@ -131,7 +131,7 @@ void MapVisual::updateState(int row, int clm, int state){
 
 /**
  * Actualiza el simbolo correspondiente al rol de una entidad.
- * param: int fila, int columna, int rol
+ * param: int (row), int (column), int (rol)
  * return
  */
 void MapVisual::updateRole(int row, int clm, int role){
@@ -149,7 +149,7 @@ void MapVisual::updateRole(int row, int clm, int role){
 
 /**
  * Agrega al chat informacion sobre el estado actual de una entidad.
- * param: string nombre, int estado, int rol
+ * param: string (nombre), int (estado), int (rol)
  * return
  */
 void MapVisual::chatState(string name, int state, int role){
@@ -167,7 +167,7 @@ void MapVisual::chatState(string name, int state, int role){
 
 /**
  * Agrega al chat informacion sobre el rol de una entidad.
- * param: string nombre, int rol
+ * param: string (nombre), int (role)
  * return
  */
 void MapVisual::chatRole(string name, int role){
@@ -181,7 +181,7 @@ void MapVisual::chatRole(string name, int role){
 
 /**
  * Agrega al chat una pista sobre la cantidad de traidores en una ubicacion.
- * param: int cantidad detectada
+ * param: int (cantidad de traidores)
  * return
  */
 void MapVisual::chatPresence(int presence){
@@ -196,7 +196,7 @@ void MapVisual::chatPresence(int presence){
 
 /**
  * Agrega al chat que se intento interactuar con una entidad que ya estaba muerta.
- * param: int fila, int columna, int rol
+ * param: int (fila), int (columna), int (rol)
  * return
  */
 void MapVisual::chatFalseExecution(int rw, int clm, int role){
@@ -238,7 +238,7 @@ void MapVisual::chatDeath(){
 
 /**
  * Actualiza el karma y nivel de sospecha del jugador.
- * param: int karma, int sospecha
+ * param: int (karma), int (pts sospecha)
  * return
  */
 void MapVisual::updateUser(int karma, int sus){
