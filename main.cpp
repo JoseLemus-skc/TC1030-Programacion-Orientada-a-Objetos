@@ -1,3 +1,16 @@
+/**
+ * Proyecto RDM - Garry's Mod TTT experience. 
+ * Programacion Orientada a Objetos (TC1030)
+ *
+ * Jose Manuel Lemus Gomez - A01707194 
+ * 
+ * En este proyecto se desarrolla una adaptación simplificada del modo de juego
+ * "Trouble in Terrorist Town" (TTT) de Garry's Mod. El jugador interactúa con
+ * un tablero de coordenadas donde todos los otros "jugadores" son inicialmente
+ * desconocidos y debe decidir entre inspeccionar o atacarlos.
+ * 
+ */
+
 #include "entity.h"
 #include "inno.h"
 #include "traitor.h"
@@ -6,22 +19,56 @@
 #include "mapVisual.h"
 
 #include <iostream>
+#include <string>
+#include <cstdlib>
+#include <ctime>
 using namespace std;
 
 const int DIMENSION = 6;
 const int DIMENSIONSQR = DIMENSION*DIMENSION;
 
 // Funciones de utilidad
+/**
+ *Funcion para limpiar visualmente la pantalla imprimiendo saltos de linea.
+ *param: ninguno
+ *return
+ */
 void cleanScreen(){
     cout << "\n\n\n\n\n\n\n\n\n\n\n\\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n";
 }
 
-void pause(){
+/**
+ *Funcion para pausar la ejecucion del programa y que explicimente
+ *indique al usuario a escribir algo y presionar Enter
+ *param> ninguno
+ *return
+ */
+void waitForInputTutorial(){
     string temp;
+    cout << "\nType and press enter: " << endl;
+    cout << "> ";
     cin >> temp;
     return;
 }
 
+/**
+ *Funcion para pausar la ejecucion del preograma hasta que
+ *el usuario escriba algo y presione Enter
+ *param
+ *return
+ */
+void waitForInput(){
+    string temp;
+    cout << "\n> ";
+    cin >> temp;
+    return;
+}
+
+/**
+ *Funcion que convierte una letra de columna a su indice numerico
+ *param: char (clm)
+ *return: int (-1 si es invalida)
+ */
 int coordinateColumn(char clm){
     char letters[6] = {'A','B','C','D','E','F'};
     for (int i = 0; i < 6; i++){
@@ -29,15 +76,48 @@ int coordinateColumn(char clm){
             return i;
         }
     }
-    return 0;
+    return -1;
 }
 
-void coordinateRow(int &row){
-    row = row - 1;
-    return;
+/**
+ *Funcion que convierte el numero de fila a a un indice valido
+ *param: int (rw)
+ *return: int (-1 si es invalido)
+ */
+int coordinateRow(int rw){
+    rw = rw - 1;
+    if (rw < DIMENSION && rw >= 0){
+        return rw;
+    }
+    else{return -1;}
 }
 
-void storeChangedCoordinates(int row, int clm, int vc, int storage[][3], int &index){
+/**
+ *Funcion que procesa una coordenada ingresada por el usuario
+ *y obtiene indices de fila y columna validos
+ *param: string (coordinate), int referencia (rw), int referencia (clm)
+ *return - Cambios directos a rw y clm
+ */
+void coordinateProcessing(string coordinate, int &rw, int &clm){
+    rw = -1;
+    clm = -1;
+    
+    if (coordinate.size() < 2 || coordinate.size() > 2){return;}
+    
+    char raw_clm = coordinate[0];
+    clm = coordinateColumn(raw_clm);
+
+    int raw_rw = stoi(coordinate.substr(1));
+    rw = coordinateRow(raw_rw);
+}
+
+/**
+ *Funcion que registra en un arreglo la informacion de cualquier objeto que
+ *cambio de estado o visibilidad a lo largo de una ronda.
+ *param: int (row), int (clm), int (vc) cambio de estado o visibilidad, arreglo 2D (storage), int referencia (index)
+ *return - Cambios directos al index y al arreglo "Storage"
+ */
+void recordedChanges(int row, int clm, int vc, int storage[][3], int &index){
     if (index == DIMENSIONSQR){return;}
     storage[index][0] = row; // Fila
     storage[index][1] = clm; // Columna
@@ -46,107 +126,166 @@ void storeChangedCoordinates(int row, int clm, int vc, int storage[][3], int &in
     index++;
 }
 
+// Funciones de Input 
 
-
-// Tutorial
+/**
+ *Funcion que muestra el tutorial del juego y explica su funcionamiento
+ *param: ninguno
+ *return
+ */
 void tutorial(){
     string temp;
-    char temp_char_input;
-    int temp_char;
-    int temp_int;
+
+    cout << "> ";
     cin >> temp;
-    if (temp == "no"){
-        return;
-    }
-    
-    cleanScreen();
-    cout << "Trouble in Terrorist Town (TTT) is a multiplayer gamemode included with Garrys Mod. Set in a parody of the Counter-Strike universe, the game\nis about a group of 'terrorists' who have traitors among them, out to kill everyone whos not a traitor." << endl;
-    pause();
+
+    if (temp != "y"){return;}
 
     cleanScreen();
-    cout << "When the game starts, a small number of players is selected as Traitors, who have to kill all the Innocent players (ie. the rest of the players).\nThe Innocent players know they are in the majority, but they do not know who is a Traitor and who is not." << endl;
-    pause();
+    cout << "Trouble in Terrorist Town (TTT) is a social deduction game.\nA few players are secretly Traitors and must eliminate everyone else.\nThe Innocents must discover who the Traitors are before it is too late." << endl;
+    waitForInputTutorial();
 
     cleanScreen();
-    cout<< "You are an innocent... You have to kill ALL traitors!" << endl;
-    pause();
+    cout << "Unfortunately, you suffer from a severe and rare visual impairment.\nEverybody looks like a single character on a coordinate grid." << endl;
+    waitForInputTutorial();
 
     cleanScreen();
-    cout<< "You suffer from a severe visual disorder that turns the other players into simple characters in a coordinate field.\nLike this:" << endl;
     MapVisual tutorialMap;
+    tutorialMap.updateUser(100, 0);
+
+    cout << "This is your screen:" << endl << endl;
     tutorialMap.printMap();
-    pause();
+
+    cout << "\nCoordinates are written like A1, C4, or F6.\nColumns use letters, rows use numbers, if you needed it spelled out..." << endl;
+    waitForInputTutorial();
 
     cleanScreen();
-    cout<< "Thankfully you can inspect any of these characters to know if they are a traitor or an innocent like you.\nItll keep you from making any rash decisions that might make the detectives think YOU are a traitor." << endl;
+    cout << "Every symbol on the map means something:" << endl;
+    cout << "? = Unknown player" << endl;
+    cout << "# = Game over" << endl;
+    cout << "X = Dead player" << endl;
+    cout << "\n";
+    cout << "When you identify a player, you may see:" << endl;
+    cout << "I = Innocent" << endl;
+    cout << "T = Traitor" << endl;
+    cout << "D = Detective" << endl;
+    waitForInput();
+
+    cleanScreen();
     tutorialMap.printMap();
-    pause();
-    cout<< "Go ahead and enter a coordinate, like this: A3\nColumn: " ;
-    cin >> temp_char_input;
-    temp_char = coordinateColumn(temp_char_input);
-    cout<< "row: ";
-    cin >> temp_int;;
-    coordinateRow(temp_int);
+
+    cout << "\nActions:" << endl;
+    cout << "1) Attack" << endl;
+    cout << "   Shoot a player" << endl;
+    cout << "2) Inspect" << endl;
+    cout << "   Reveal a player (and get a whiff of any traitors around that player)" << endl;
+    cout << "3) (Secret) Grenade" << endl;
+    cout << "   Damage multiple nearby players at once." << endl;
+    waitForInput();
 
     cleanScreen();
-    tutorialMap.printMap();
-    cout<< "Now type 2 to simply inspect: ";
-    pause();
-    
-    cleanScreen();
-    tutorialMap.updateRole(temp_int, temp_char, 3);
-    cout<< "A wild detective appears!" << endl;
-    tutorialMap.printMap();
-    pause();
-
-    temp = 1;
-    while (temp != "2"){
-        cleanScreen();
-        tutorialMap.printMap();
-        cout<< "Now type 2 to kill him ";
-        cin >> temp;
-    }
-
-    tutorialMap.updateState(temp_int, temp_char, 3);
+    cout << "Be careful.\nKilling innocent players lowers your Karma and makes you look suspicious.\nSuspicious players attract attention." << endl;
+    waitForInput();
 
     cleanScreen();
-    cout<< "He is now dead... " << endl;
-    tutorialMap.printMap();
-    pause();
+    cout << "In regular TTT, killing random people without evidence is called RDM (Random Death Match).\nNormally this is considered bad.\nIn this game, however, you're basically blind.\nEveryone is a question mark.\nSo pray to whoever you pray to because this is all just a desperate attempt to RDM the correct people." << endl;
+    waitForInput();
 
     cleanScreen();
-    cout<< "And his buddies realized... " << endl;
-    tutorialMap.updateState(0, 0, 2);
-    tutorialMap.updateState(0, 4, 2);
-    tutorialMap.updateState(3, 3, 2);
-    tutorialMap.updateState(3, 4, 2);
-    tutorialMap.updateState(5, 2, 2);
-    tutorialMap.updateState(2, 1, 2);
-    tutorialMap.updateState(2, 2, 2);
-    tutorialMap.updateState(2, 4, 2);
-    tutorialMap.printMap();
-    cout<< "oops... ";
-    pause();
+
+    cout << "You lose if: Your Karma gets too low. Too many people suspect you. A traitor gets suspicious of you.\nYou dont win." << endl << endl;
+    waitForInput();
 
     cleanScreen();
-    tutorialMap.death();
-    pause();
-    cout << "This is what happens when you put down the wrong person..." << endl;
-    pause();
+    cout << "it wasnt implemented..." << endl;
+    waitForInput();
 
     cleanScreen();
-    cout << "Random Death Match (RDM) occurs when a player kills or attempts to kill another player for no apparent reason." << endl;
-    cout << "Unfortunately you cant do anythung but! -blind and uncapable of doing nothing more but to guess..." << endl;
-    pause();
-    cout << "Welcome to 'RDM" << endl;
-    cout << "Start Game?  ";
-    pause();
-    return;
+    cout << "Welcome to RDM." << endl;
+    waitForInput();
+}
+
+/**
+ *Funcion para que el usuario ingrese la dificultad de la partida.
+ *param: ninguno
+ *return: int 
+ */
+int selectDifficulty(){
+    int difficulty;
+
+    do{
+        cout << "Select difficulty:" << endl;
+        cout << "(0) Easy" << endl;
+        cout << "(1) Medium" << endl;
+        cout << "(2) Hard" << endl;
+        cout << "(3) Super Hard" << endl;
+        cout << "> ";
+
+        cin >> difficulty;
+
+        if (difficulty < 0 || difficulty > 3){
+            cout << "Invalid option." << endl;
+        }
+
+    } while (difficulty < 0 || difficulty > 3);
+
+    return difficulty;
+}
+
+/**
+ *Funcion para solicitar al usuario una coordenada y procesarla.
+ *param: int referencia (rw), int referencia (clm).
+ *return: - Cambios directos al rw y al arreglo clm
+ */
+void inputCoordinate(int &rw, int &clm){
+    string coordinate;
+
+    do{
+        cout << "Insert a coordinate: " << endl;
+        cout << ">  ";
+        cin >> coordinate;
+
+        coordinateProcessing(coordinate, rw, clm);
+
+        if (rw == -1 || clm == -1){
+            cout << "Invalid coordinate." << endl;
+        }
+
+    } while (rw == -1 || clm == -1);
+}
+
+/**
+ *Funcion para solicitar al usuario una accion.
+ *param: ninguno
+ *return: int
+ */
+int inputAction(){
+    int option;
+
+    do{
+        cout << "Choose an action:" << endl;
+        cout << "(1) Attack" << endl;
+        cout << "(2) Inspect" << endl;
+        cout << "> ";
+        cin >> option;
+
+        if (option < 1 || option > 3){
+            cout << "Invalid option." << endl;
+        }
+
+    } while (option < 1 || option > 3);
+
+    return option;
 }
 
 
-// Renderizado
-void updateChanges(MapVisual &mapa, EntityPool &entities, int storage[][3], int index){
+// Funciones de Renderizado
+/**
+ *Funcion que actualiza el mapa visual con los cambios registrados durante la ronda.
+ *param: MapVisual referencia (mapa), EntityPool (entities), arreglo 2D (storage), int (index)
+ *return:
+ */
+void syncRenderedEntities(MapVisual &mapa, EntityPool &entities, int storage[][3], int index){
     for (int i = 0; i < index; i++){
         int tempRow = storage[i][0];
         int tempClm = storage[i][1];
@@ -168,66 +307,156 @@ void updateChanges(MapVisual &mapa, EntityPool &entities, int storage[][3], int 
     }
 }
 
-void updateUI(MapVisual &mapa, int susLevel, int userKarma){
+/**
+ *Funcion que actualiza los datos del jugador mostrados en el mapa
+ *param: MapVisual (mapa), int (susLevel), int (userKarma)
+ *return
+ */
+void syncRenderedUI(MapVisual &mapa, int susLevel, int userKarma){
     mapa.updateUser(userKarma, susLevel);
 }
 
-void updateFlags(int rw, int clm, EntityPool &entities, MapVisual &mapa, bool executionFlag, int pFlag){
+/**
+ *Funcion que actualiza el mapa sobre de presencia de traidores o inputs fallidos
+ *param: int (rw), int (clm) EntityPool(entities), MapVisual (mapa), bool (executionFlag), int (pFlag)
+ *return
+ */
+void syncRenderedFlags(int rw, int clm, EntityPool &entities, MapVisual &mapa, bool executionFlag, int pFlag){
     if (executionFlag == false){mapa.chatFalseExecution(rw, clm, entities.getEntity(rw, clm)->getRole());}
     if (pFlag >= 0){mapa.chatPresence(pFlag);}
 }
 
 
 
-// Funciones de gameplay
-bool endConditions1(EntityPool &entities, int storage[][3], int index){
+// Funciones de gameplay (Reglas del juego)
+
+/**
+ *Funcion que verifica si se cumple alguna condicion de game over
+ *param: EntityPool(entities), arreglo 2D (storage), int (index), bool (karmaCheck)
+ *return: int
+ */
+int checkDeathLoss(EntityPool &entities, int storage[][3], int index, bool karmaCheck){
     for (int i = 0; i < index; i++){
         int tempRow = storage[i][0];
         int tempClm = storage[i][1];
 
         Entity* tempPtr = entities.getEntity(tempRow, tempClm);
         int tempState = tempPtr->getState();
+        int tempRole = tempPtr->getRole();
 
-        if (tempState == 2){return true;}
+        if (tempState == 2 && tempRole == 2){return 1;}
+        else if ((tempState == 2 && tempRole == 3) && (karmaCheck == true)){return 2;}
     }
+    return 0;
+}
+
+/**
+ *Funcion que calcula el karma y los sus points que el usuario acumulo
+ *durante la ronda y valida una condicion de game over.
+ *param: int (karma), int (sus)
+ *return: bool
+ */
+bool karmaCheck(int karma, int sus){
+    if (karma < 70 && sus > 4){;return true;}
     return false;
 }
 
-bool endConditions2(int karma, int sus){
-    if (karma < 60 && sus > 7){return true;}
-    return false;
+
+
+// Funciones de gameplay (Interacciones con Entities)
+/**
+ *Funcion que alerta a las entidades dentro de un espacio 3*3 sobre el ataque de usuario a no Traitor.
+ *param: int (rw), int (clm), int (sprd), const int (limits), EntityPool (entities), arreglo 2D (storage), int (index)
+ *return: - Cambios directos a las entidades en EntityPool y el arreglo "Sotrage" e index.
+ */
+void areaAlertBetrayal(int rw, int clm, int sprd, const int &limits, EntityPool &entities, int storage[][3], int &index){
+
+    for (int i = (rw - sprd); i <= (rw + sprd); i++){
+        if (i < 0 || i >= limits){continue;}
+
+        for (int j = (clm - sprd); j <= (clm + sprd); j++){
+            if (j < 0 || j >= limits){continue;}
+            else if (i == rw && j == clm){continue;}
+
+            Entity* tempPtr = entities.getEntity(i, j);
+            int state0 = tempPtr->getState();
+
+            if (state0 != 3){
+                if (tempPtr->getRole() == 3){
+                Detective* tempDetective = dynamic_cast<Detective*>(tempPtr);
+
+                tempDetective->increaseAggro();
+
+                int statef = tempPtr->getState();
+                if (state0 != statef){recordedChanges(i, j, 1, storage, index);}
+                }
+            
+                else if (tempPtr->getRole() == 2){
+                    Traitor* tempTraitor = dynamic_cast<Traitor*>(tempPtr);
+                    tempTraitor->appease();
+                }
+            }
+        }
+    }
 }
 
-// Interacciones
-void attackEntity(int rw, int clm, int dmg, EntityPool &entities, int storage[][3], int &index){
+/**
+ *Funcion que aplica daño a una entidad y registra algun cambio de estado (muerte) sin registrar el exito de la interaccion.
+ *param: int (rw), int (clm), int (dmg), int (sprd), EntityPool (entities), const int (limit), arreglo 2D (storage), int (index)
+ *return
+ */
+void attackEntity(int rw, int clm, int dmg, int sprd, EntityPool &entities, const int &limit, int storage[][3], int &index){
     Entity* tempPtr = entities.getEntity(rw, clm);
     
     int state0 = tempPtr->getState();
+    int role = tempPtr->getRole();
     
     if (state0 != 3){
         tempPtr->damage(dmg);
         int statef = tempPtr->getState();
 
-        if (state0 != statef){storeChangedCoordinates(rw, clm, 1, storage, index);}
+        if (state0 != statef){
+            recordedChanges(rw, clm, 1, storage, index);
+            if ((statef == 3) && (role != 2)){
+                areaAlertBetrayal(rw, clm, sprd, limit, entities, storage, index);
+            }
+        }
     }
 }
 
-void attackEntity(int rw, int clm, int dmg, EntityPool &entities, int storage[][3], int &index, bool &execFlag){
+/**
+ *Funcion que aplica daño a una entidad, registra algun cambio de estado e indica si la accion fue ejecutada con exito.
+ *param: int (rw), int (clm), int (dmg), int (sprd), EntityPool (entities), const int (limit), arreglo 2D (storage), int (index), bool (execFlag)
+ *return
+ */
+void attackEntity(int rw, int clm, int dmg, int sprd, EntityPool &entities, const int &limit, int storage[][3], int &index, bool &execFlag){
     Entity* tempPtr = entities.getEntity(rw, clm);
-    
+
     int state0 = tempPtr->getState();
-    
+    int role = tempPtr->getRole();
+
     if (state0 != 3){
         tempPtr->damage(dmg);
         int statef = tempPtr->getState();
 
-        if (state0 != statef){storeChangedCoordinates(rw, clm, 1, storage, index);}
-
+        if (state0 != statef){
+            recordedChanges(rw, clm, 1, storage, index);
+            if ((statef == 3) && (role != 2)){
+                areaAlertBetrayal(rw, clm, sprd, limit, entities, storage, index);
+            }
+        }
         execFlag = true;
     }
-    else{execFlag = false;}
+    else{
+        execFlag = false;
+    }
 }
 
+/**
+ *Funcion que ajusta el karma y nivel de sospecha que se tiene del jugador segun el tipo de entidad que ataco.
+ *param: int (rw), int (clm), int (dmg), EntityPool (entities), int (sus), int (karma)
+ *return
+ */
 void karmaPenalty(int rw, int clm, int dmg, EntityPool &entities, int &sus, int &karma){
     Entity* tempPtr = entities.getEntity(rw, clm);
     
@@ -251,7 +480,13 @@ void karmaPenalty(int rw, int clm, int dmg, EntityPool &entities, int &sus, int 
     }
 }
 
-void unhideEntity(int rw, int clm, EntityPool &entities, int storage[][3], int &index, int sus, int karma){
+
+/**
+ *Funcion que revela una entidad y registra el cambio de visibilidad sin registrar el exito de la interaccion.
+ *param: int (rw), int (clm), EntityPool (entities), arreglo 2D (storage), int (index)
+ *return
+ */
+void unhideEntity(int rw, int clm, EntityPool &entities, int storage[][3], int &index){
     Entity* tempPtr = entities.getEntity(rw, clm);
     
     int state0 = tempPtr->getState();
@@ -261,10 +496,15 @@ void unhideEntity(int rw, int clm, EntityPool &entities, int storage[][3], int &
         tempPtr->unhide();
         bool visf = tempPtr->getVisibility();
     
-        if (vis0 != visf){storeChangedCoordinates(rw, clm, 0, storage, index);}
+        if (vis0 != visf){recordedChanges(rw, clm, 0, storage, index);}
     }
 }
 
+/**
+ *Funcion que revela una entidad, registra el cambio de visibilidad e indica si la accion fue ejecutada con exito.
+ *param: int (rw), int (clm), EntityPool (entities), arreglo 2D (storage), int (index), bool (execFlag)
+ *return
+ */
 void unhideEntity(int rw, int clm, EntityPool &entities, int storage[][3], int &index, bool &execFlag){
     Entity* tempPtr = entities.getEntity(rw, clm);
     
@@ -275,14 +515,19 @@ void unhideEntity(int rw, int clm, EntityPool &entities, int storage[][3], int &
         tempPtr->unhide();
         bool visf = tempPtr->getVisibility();
     
-        if (vis0 != visf){storeChangedCoordinates(rw, clm, 0, storage, index);}
+        if (vis0 != visf){recordedChanges(rw, clm, 0, storage, index);}
 
         execFlag = true;
     }
     else{execFlag = false;}
 }
 
-void noticeEntity(int rw, int clm, EntityPool &entities, int storage[][3], int &index){
+/**
+ *Funcion que alerta a un traidor de encontrarse dentro del rango de una inspeccion de area y registra cualquier cambio de estado.
+ *param: int (rw), int (clm), EntityPool (entities), arreglo 2D (storage), int (index)
+ *return
+ */
+void alertEntity(int rw, int clm, EntityPool &entities, int storage[][3], int &index){
     Entity* tempPtr = entities.getEntity(rw, clm);
     int state0 = tempPtr->getState();
 
@@ -291,12 +536,20 @@ void noticeEntity(int rw, int clm, EntityPool &entities, int storage[][3], int &
         tempPtr_Traitor->notice();
         int statef = tempPtr->getState();
     
-        if (state0 != statef){storeChangedCoordinates(rw, clm, 1, storage, index);}
+        if (state0 != statef){recordedChanges(rw, clm, 1, storage, index);}
     }
 }
 
-// Interacciones Splash
-int observeSpread(int rw, int clm, int sprd, const int &limits, EntityPool &entities, int storage[][3], int &index){
+
+
+// Funciones de gameplay (Interacciones con multiples Entities)
+
+/**
+ *Funcion que recorre un area cuadrada alrededor de una coordenada y cuenta los traidores detectados.
+ *param: int (rw), int (clm), int (sprd), const int (limits), EntityPool (entities), arreglo 2D (storage), int (index)
+ *return: int
+ */
+int areaInspect(int rw, int clm, int sprd, const int &limits, EntityPool &entities, int storage[][3], int &index){
     int traitorCounter = 0;
 
     for (int i = (rw - sprd); i <= (rw + sprd); i++){
@@ -309,7 +562,7 @@ int observeSpread(int rw, int clm, int sprd, const int &limits, EntityPool &enti
             Entity* tempPtr = entities.getEntity(i, j);
             if(tempPtr->getRole() == 2){
 
-                noticeEntity(i, j, entities, storage, index);
+                alertEntity(i, j, entities, storage, index);
 
                 traitorCounter++;
             }
@@ -318,7 +571,12 @@ int observeSpread(int rw, int clm, int sprd, const int &limits, EntityPool &enti
     return traitorCounter;
 }
 
-void damageSpread(int rw, int clm, int sprd, int dmg, const int &limits, EntityPool &entities, int storage[][3], int &index, int &sus, int &karma){
+/**
+ *Funcion que recorre y dana a todas las entidades dentro de un area cuadrada alrededor de una coordenada.
+ *param: int (rw), int (clm), int (sprd), int (dmg), const int (limits), EntityPool (entities), arreglo 2D (storage), int (index), int (sus), int (karma)
+ *return
+ */
+void areaDamage(int rw, int clm, int sprd, int dmg, const int &limits, EntityPool &entities, int storage[][3], int &index, int &sus, int &karma){
 
     for (int i = (rw - sprd); i <= (rw + sprd); i++){
         if (i < 0 || i >= limits){continue;}
@@ -327,21 +585,102 @@ void damageSpread(int rw, int clm, int sprd, int dmg, const int &limits, EntityP
             if (j < 0 || j >= limits){continue;}
             else if(i == rw && j == clm){continue;}
 
-            attackEntity(i, j, dmg, entities, storage, index);
             karmaPenalty(i, j, dmg, entities, sus, karma);
+            attackEntity(i, j, dmg, 1, entities, limits, storage, index);
         }
     }
 }
 
-// Ronda
-bool round(int &susLevel, int &userKarma, MapVisual &mapa,EntityPool &entities){    
+/**
+ *Funcion que recorre un perimetro en forma de cruz alrededor de una coordenada y cuenta los traidores detectados.
+ *param: int (rw), int (clm), const int (limits), EntityPool (entities), arreglo 2D (storage), int (index)
+ *return: int
+ */
+int crossInspect(int rw, int clm, const int &limits, EntityPool &entities, int storage[][3], int &index){
+    int traitorCounter = 0;
+
+    for (int i = rw - 1; i <= rw + 1; i++){
+        if (i < 0 || i >= limits) continue;
+
+        for (int j = clm - 1; j <= clm + 1; j++){
+            if (j < 0 || j >= limits) continue;
+            if (i == rw && j == clm) continue;
+            if (i != rw && j != clm) continue;
+
+            Entity* tempPtr = entities.getEntity(i, j);
+
+            if (tempPtr->getRole() == 2){
+                alertEntity(i, j, entities, storage, index);
+                traitorCounter++;
+            }
+        }
+    }
+    return traitorCounter;
+}
+
+/**
+ *Funcion que recorre un perimetro en forma de cruz alrededor de una coordenada y dana a todas las entidades dentro.
+ *param: int (rw), int (clm), int (sprd), int (dmg), const int (limits), EntityPool (entities), arreglo 2D (storage), int (index), int (sus), int (karma)
+ *return
+ */
+void crossDamage(int rw, int clm, int dmg, const int &limits, EntityPool &entities, int storage[][3], int &index, int &sus, int &karma){
+for (int i = rw - 1; i <= rw + 1; i++){
+        if (i < 0 || i >= limits) continue;
+
+        for (int j = clm - 1; j <= clm + 1; j++){
+            if (j < 0 || j >= limits) continue;
+            if (i == rw && j == clm) continue;
+            if (i != rw && j != clm) continue;
+
+
+            karmaPenalty(i, j, dmg, entities, sus, karma);
+            attackEntity(i, j, dmg, 1, entities, limits, storage, index);
+        }
+    }
+}
+
+
+
+// Funciones de gameplay (Manejo de rondas)
+/**
+ *Funcion que configura modificadores (area de areaDamage y multiplicadores de daño) deacorde a la dificultad seleccionada.
+ *param: int (difficulty), float (multiplier), bool (useCross), int (inspectSpread)
+ *return
+ */
+void difficultyMultiplier(int difficulty, float &multiplier, bool &useCross, int &inspectSpread){
+    multiplier = 1.0;
+    useCross = false;
+    inspectSpread = 1;
+
+    if (difficulty == 0){
+        multiplier = 0.5;
+        useCross = true;
+    }
+    else if (difficulty == 1){
+        multiplier = 1;
+        useCross = true;
+    }
+    else if (difficulty == 2){
+        multiplier = 2;
+        inspectSpread = 1;
+    }
+    else if (difficulty == 3){
+        multiplier = 3;
+        inspectSpread = 2;
+    }
+}
+
+/**
+ *Funcion que ejecuta una ronda completa del juego y regresa los resultados para continuar o concluir el juego.
+ *param: int (susLevel), int (userKarma), MapVisual (mapa), EntityPool (entities), float (multiplier), bool (useCross), int (inspectSpread)
+ *return: int
+ */
+int executeRound(int &susLevel, int &userKarma, MapVisual &mapa,EntityPool &entities, float multiplier, bool useCross, int inspectSpread){    
     mapa.printMap();
 
-    bool isGameOver = false;
-    char input_column = 'A';
-    int column = 0;
-    int row = 0;
-    int option = 0;
+    int row, column, option, karmaResult;
+
+    inputCoordinate(row, column);
 
     bool successFlag = true;
     int presenceFlag = -1;
@@ -349,85 +688,169 @@ bool round(int &susLevel, int &userKarma, MapVisual &mapa,EntityPool &entities){
     int stChanges = 0;
     int stChangesStorage[DIMENSIONSQR][3];
 
-    cout << "Insert a column: ";
-    cin >> input_column;
-    column = coordinateColumn(input_column);
-    cout << "Insert a row: ";
-    cin >> row;
-    coordinateRow(row);
-
-    cout << "Choose an action: (1) Attack, (2) Inspect." << endl;
-    cin >> option;
+    option = inputAction();
 
     if (option == 1){
-        karmaPenalty(row, column, 100, entities, susLevel, userKarma);
-        attackEntity(row, column, 100, entities, stChangesStorage, stChanges, successFlag);
+        karmaPenalty(row, column, 100 * multiplier, entities, susLevel, userKarma);
+        attackEntity(row, column, 100, inspectSpread, entities, DIMENSION, stChangesStorage, stChanges, successFlag);
     }
     else if (option == 2){
         unhideEntity(row, column, entities, stChangesStorage, stChanges, successFlag);
-        presenceFlag = observeSpread(row, column, 1, DIMENSION, entities, stChangesStorage, stChanges);
+        
+        if (useCross == true){
+            presenceFlag = crossInspect(row, column, DIMENSION, entities, stChangesStorage, stChanges);
+        }
+        else{
+            presenceFlag = areaInspect(row, column, inspectSpread, DIMENSION, entities, stChangesStorage, stChanges);
+        } 
     }
-    else{
-        cout << "Invalid option.";
-        pause();
-        return false;
+    else if (option == 3){
+        karmaPenalty(row, column, 125 * multiplier, entities, susLevel, userKarma);
+        attackEntity(row, column, 200, inspectSpread, entities, DIMENSION, stChangesStorage, stChanges, successFlag);
+
+        if (useCross == true){
+            crossDamage(row, column, 25 * multiplier, DIMENSION, entities, stChangesStorage, stChanges, susLevel, userKarma);
+        }
+        else{
+            areaDamage(row, column, inspectSpread, 50 * multiplier, DIMENSION, entities, stChangesStorage, stChanges, susLevel, userKarma);
+        }
     }
 
-    updateChanges(mapa, entities, stChangesStorage, stChanges);
-    updateFlags(row, column, entities, mapa, successFlag, presenceFlag);
-    updateUI(mapa, susLevel, userKarma);
+    syncRenderedFlags(row, column, entities, mapa, successFlag, presenceFlag);
+    syncRenderedEntities(mapa, entities, stChangesStorage, stChanges);
+    syncRenderedUI(mapa, susLevel, userKarma);
 
-    return (endConditions1(entities, stChangesStorage, stChanges) || endConditions2(userKarma, susLevel) );
+    karmaResult = karmaCheck(userKarma, susLevel);
+    return (checkDeathLoss(entities, stChangesStorage, stChanges, karmaResult));
 }
 
 
-int main(){  
+/**
+ *Funcion principal que inicializa el mapa, el entituPool y ejecuta un ciclo completo del juego.
+ *param: string (playerName), int (difficulty)
+ *return
+ */
+void game(string playerName, int difficulty){
 
-    // Declaracion de variables (arreglos)
     char map1[DIMENSION][DIMENSION] = {
-        {'T','T','I','I','I', 'I'},
-        {'I','I','I','I','I', 'I'},
-        {'I','I','I','I','I', 'I'},
-        {'I','I','I','I','T', 'I'},
-        {'I','I','I','I','I', 'I'},
-        {'I','D','I','D','I', 'I'},
+        {'T','T','I','I','I','I'},
+        {'I','I','I','I','I','I'},
+        {'I','I','I','T','I','I'},
+        {'I','I','I','I','T','I'},
+        {'I','I','T','I','I','I'},
+        {'I','D','I','D','I','I'}
     };
 
-    string namePool[DIMENSIONSQR] = {"StringBean", "simulacra", "gatita", "Somkey", "Trumbone_Jones", "OBagglietto", "DaintyLight", "MrTinRobot", 
-                        "stubs", "monkeydog", "Driggs9DrillMine)", "BIG", "Sgt.Hartman", "lamp", "BlueSkys", "Ed", "scoooot", "sky",
-                        "tyrone", "Death", "Halloweenie", "AccroonGaming", "natybumbo", "glucose", "Mamulons1", "TaeGoingGirlmode",
-                        "kimmie", "Jerry", "SlurpUpUrButty", "mcLovin", "TheShowerBagel", "mordecaiMagico777", "RicuNav", "Darkness", 
-                        "hoppipottla", "Anton"};
+    char map2[DIMENSION][DIMENSION] = {
+        {'I','I','I','T','I','I'},
+        {'I','I','I','I','I','I'},
+        {'I','I','I','I','I','I'},
+        {'I','I','I','I','T','I'},
+        {'I','I','I','I','I','I'},
+        {'I','D','I','I','I','I'}
+    };
 
+    char map3[DIMENSION][DIMENSION] = {
+        {'T','I','I','I','I','T'},
+        {'I','I','I','D','I','I'},
+        {'I','I','I','I','I','I'},
+        {'I','I','T','I','I','I'},
+        {'I','D','I','I','I','I'},
+        {'I','I','I','I','T','I'}
+    };
 
-    // Declaracion de variables
-    string playerName;
-    int sus =0;
+    char map4[DIMENSION][DIMENSION] = {
+        {'I','I','I','I','D','I'},
+        {'I','I','T','I','I','I'},
+        {'I','I','I','I','I','I'},
+        {'I','D','I','I','I','I'},
+        {'I','I','I','T','I','T'},
+        {'I','I','I','I','I','T'}
+    };
+
+    char debug[DIMENSION][DIMENSION] = {
+        {'I','I','I','I','I','I'},
+        {'I','I','I','I','I','I'},
+        {'I','I','D','I','I','I'},
+        {'I','I','I','I','I','I'},
+        {'I','I','I','I','I','I'},
+        {'I','I','I','I','I','T'}
+    };
+
+    string namePool[DIMENSIONSQR] = {
+        "StringBean", "simulacra", "gatita", "Somkey", "Trumbone_Jones", "OBagglietto",
+        "DaintyLight", "MrTinRobot", "stubs", "monkeydog", "Driggs9DrillMine)", "BIG",
+        "Sgt.Hartman", "lamp", "BlueSkys", "Ed", "scoooot", "sky",
+        "tyrone", "Death", "Halloweenie", "AccroonGaming", "natybumbo", "glucose",
+        "Mamulons1", "TaeGoingGirlmode", "kimmie", "Jerry", "SlurpUpUrButty", "mcLovin",
+        "TheShowerBagel", "mordecaiMagico777", "RicuNav", "Darkness",
+        "hoppipottla", "Anton"
+    };
+
+    float multiplier;
+    bool useCross;
+    int inspectSpread;
+
+    difficultyMultiplier(difficulty, multiplier, useCross, inspectSpread);
+
+    int sus = 0;
     int karma = 100;
-    bool gameOver = false;
+    int gameOver = 0;
 
-    // Inicio
-    cout << "Insert a username: ";
+    EntityPool game;
+    
+    srand(time(0));
+    int i = (rand() % 4) + 1;
+    cout << "map: " << i;
+
+    if (i == 1) {game.loadMap(map1, namePool);}
+    if (i == 2){game.loadMap(map2, namePool);}
+    if (i == 3) {game.loadMap(map3, namePool);}
+    if (i == 4){game.loadMap(map4, namePool);}
+
+    MapVisual gameMap(playerName);
+
+    while (gameOver == 0){
+        cleanScreen();
+        gameOver = executeRound(sus, karma, gameMap, game, multiplier, useCross, inspectSpread);
+    }
+
+    cleanScreen();
+    gameMap.printMap();
+    waitForInputTutorial();
+
+    cleanScreen();
+    if(gameOver == 2){gameMap.deathKarma();}
+    else if (gameOver == 1){gameMap.deathKilled();}
+}
+
+
+// Main
+int main(){
+
+    string playerName;
+    bool replay;
+    char option;
+
+    cout << "Insert a username " << endl;
+    cout << "> ";
     cin >> playerName;
 
-    // Tutorial
-    cout << "Do you wish to read the intro? Type 'yes' or 'no'" << endl;
+    cout << "\nDo you wish to read the intro? (y/n)" << endl;
     tutorial();
-    cleanScreen();
 
-    // Inicializacion del juego
-    EntityPool game;
-    game.loadMap(map1,namePool);
-    MapVisual gameMap(playerName);
-    
-    // Loop de turnos
-
-    while(gameOver == false){
+    do{
         cleanScreen();
-        gameOver = round(sus, karma, gameMap, game);
-    }
-    gameMap.printMap();
-    pause();
 
-    gameMap.death();
+        int difficulty = selectDifficulty();
+
+        game(playerName, difficulty);
+
+        cout << "\nPlay again? (y/n): ";
+        cin >> option;
+
+        if (option == 'n'){replay = false;} 
+        else {replay = true;} 
+    } while (replay == true);
+    return 0;
 }
