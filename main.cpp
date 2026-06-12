@@ -6,22 +6,22 @@
  * 
  * En este proyecto se desarrolla una adaptación simplificada del modo de juego
  * "Trouble in Terrorist Town" (TTT) de Garry's Mod. El jugador interactúa con
- * un tablero de coordenadas donde todos los otros "jugadores" son inicialmente
+ * una matriz de coordenadas donde todos los otros "jugadores" son inicialmente
  * desconocidos y debe decidir entre inspeccionar o atacarlos.
  * 
  */
 
-#include "Entity.h"
+#include "Entity.h"    // Bibliotecas con los objetos del proyecto.
 #include "Inno.h"
 #include "Traitor.h"
 #include "Detective.h"
 #include "EntityPool.h"
 #include "MapVisual.h"
 
-#include <iostream>
-#include <string>
+#include <iostream>   // para imprimir.
+#include <string>     // para facilitar los inputs del jugador.
 #include <cstdlib>
-#include <ctime>
+#include <ctime>      // para elementos randomizados del juego.
 using namespace std;
 
 const int DIMENSION = 6;
@@ -184,7 +184,7 @@ void tutorial(){
     waitForInput();
 
     cleanScreen();
-    cout << "Be careful.\nKilling innocent players lowers your Karma and makes you look suspicious.\nSuspicious players attract attention." << endl;
+    cout << "Be careful.\nKilling innocent players lowers your Karma and makes you look suspicious.\nSuspicious players attract unwanted attention." << endl;
     waitForInput();
 
     cleanScreen();
