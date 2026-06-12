@@ -1,6 +1,6 @@
 TC1030-Programacion-Orientada-a-Objetos
 
-# RDM.
+# RDM. - Juego tipo BattleShip basado en Garrys Mod.
 Este proyecto se basa al rededor del modo de juego Trouble in Terrorist Town (TTT) incluido en Garry's Mod. El juego en sí trata sobre un grupo de terroristas (hence Terrorist Town) que tienen traidores entre sus filas, cuyo objetivo es matar a todos los que no sean traidores. Los jugadores Inocentes saben que son mayoría, pero no saben quién es un Traidor y quién no.
 
 ## Funcionalidad
