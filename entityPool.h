@@ -1,3 +1,11 @@
+/**
+ * EntityPool.h
+ * Proyecto TC1030
+ *
+ * created by Jose Manuel Lemus Gomez - A01707194
+ * 
+ */
+
 #ifndef ENTITYPOOL_H_
 #define ENTITYPOOL_H_
 
@@ -9,13 +17,19 @@
 #include <iostream>
 using namespace std;
 
+// Declaracion de clase EntityPool
 class EntityPool{
     private:
-    Entity* eDistribution[6][6];
+    // Atributos
+    Entity* eDistribution[6][6]; // Matriz de apuntadores a entidades
 
     public:
-    EntityPool(); // Poner un destructor
+    // Constructor
+    EntityPool();
+    // Destructor
+    ~EntityPool();
 
+    // Metodos
     void loadMap(char distributionMap[6][6], string namePool[36]);
 
     Entity* getEntity(int row, int clm);
@@ -24,6 +38,13 @@ class EntityPool{
 
 
 // Definicion de constructor
+
+/**
+ * Constructor por defecto.
+ * Inicializa todas las posiciones de la matriz con nullpointers.
+ * param: ninguno
+ * return
+ */
 EntityPool::EntityPool(){
         for (int i = 0; i < 6; i++){
             for (int j = 0; j < 6; j++){
@@ -32,7 +53,32 @@ EntityPool::EntityPool(){
     }
 }
 
-// Definicion de setter
+// Definicion de destructor
+/**
+ * Destructor.
+ * Libera el espacio de las posiciones de la matriz y las rellena con nullpointers.
+ * param: ninguno
+ * return
+ */
+EntityPool::~EntityPool(){
+    for (int i = 0; i < 6; i++){
+        for (int j = 0; j < 6; j++){
+            delete eDistribution[i][j];
+            eDistribution[i][j] = nullptr;
+        }
+    }
+}
+
+// Definiciones de metodos
+
+/**
+ * Uso de composicion
+ * Carga una matriz de distribución tipo "mapa".
+ * Dependiendo del carácter recibido crea un Traitor, Detective o Inno
+ * en el heap y almacena un apuntador en la posición correspondiente.
+ * param: matriz char[6][6] y arreglo string[36]
+ * return
+ */
 void EntityPool::loadMap(char distributionMap[6][6], string namePool[36]){
     int npIndex = 0;
     
@@ -54,8 +100,12 @@ void EntityPool::loadMap(char distributionMap[6][6], string namePool[36]){
 }
 
 
-
-// Definicion de getter
+/**
+ * Regresa el apuntador a la entidad almacenada
+ * en la coordenada especificada.
+ * param: int fila, int columna
+ * return: Entity*
+ */
 Entity* EntityPool::getEntity(int row, int clm){
     return eDistribution[row][clm];
 }
