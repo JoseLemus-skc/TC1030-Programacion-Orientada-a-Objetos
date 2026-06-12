@@ -836,7 +836,7 @@ int main(){
     cout << "> ";
     cin >> playerName;
 
-    cout << "\nDo you wish to read the intro? (y/n)" << endl;
+    cout << "\nDo you wish to read the NEW and IMPROVED tutorial? (y/n)" << endl;
     tutorial();
 
     do{
